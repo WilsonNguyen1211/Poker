@@ -12,9 +12,6 @@ class PokerGame:
         self.canvas.pack()
         self.deal_button = tk.Button(self.master, text="Deal", command=self.start_game)
         self.deal_button.pack()
-        self.check_button = tk.Button(self.master, text="Check", command=self.check, state=tk.DISABLED)
-        self.raise_button = tk.Button(self.master, text="Raise", command=self.raise_bet, state=tk.DISABLED)
-        self.fold_button = tk.Button(self.master, text="Fold", command=self.fold, state=tk.DISABLED)
         self.players = ["Player 1", "Player 2", "Player 3", "Player 4", "Player 5", "Player 6"]
         self.deck = []
         self.player_cards = {player: [] for player in self.players}
@@ -28,19 +25,17 @@ class PokerGame:
         for filename in os.listdir(directory):
             if filename.endswith(".png"):
                 print("Processing image file:", filename)
-                split_filename = filename.split("_")
-                if len(split_filename) >= 3:
-                    value, suit = split_filename[0], split_filename[2].split(".")[0]
-                    value = value.lower()  # Ensure lowercase for consistency
-                    suit = suit.capitalize()
-                    try:
-                        image = Image.open(os.path.join(directory, filename))
-                        image = image.resize((72, 96))  # Adjust image size as needed
-                        self.card_images[(value, suit)] = ImageTk.PhotoImage(image)
-                    except Exception as e:
-                        print("Error loading image:", e)
-                else:
-                    print("Invalid filename format:", filename)
+                value, suit = filename.split("_")[0], filename.split("_")[2].split(".")[0]
+                value = value.capitalize()  # Capitalize the first letter of value
+                suit = suit.capitalize()  # Capitalize the first letter of suit
+                key = (value, suit)
+                print("Loading image with key:", key)
+                try:
+                    image = Image.open(os.path.join(directory, filename))
+                    image = image.resize((72, 96))  # Adjust image size as needed
+                    self.card_images[key] = ImageTk.PhotoImage(image)
+                except Exception as e:
+                    print("Error loading image:", e)
 
         print("Loaded image keys:", self.card_images.keys())
 
@@ -48,7 +43,6 @@ class PokerGame:
         self.deck = self.generate_deck()
         self.dealer_index = random.randint(0, len(self.players) - 1)
         self.deal_cards()
-        self.enable_player_buttons()
 
     def generate_deck(self):
         suits = ["Hearts", "Diamonds", "Clubs", "Spades"]
@@ -57,19 +51,16 @@ class PokerGame:
 
     def deal_cards(self):
         random.shuffle(self.deck)
-        current_player = self.dealer_index
         for _ in range(2):
             for player in self.players:
                 self.player_cards[player].append(self.deck.pop())
-            current_player = (current_player + 1) % len(self.players)
-        self.show_cards()
+        self.show_cards("Player 1")
 
-    def show_cards(self):
-        print("Showing cards...")
+    def show_cards(self, player):
+        print("Showing cards for", player)
         self.canvas.delete("all")
         x = 50
         y = 50
-        player = "Player 1"
         self.canvas.create_text(x, y, anchor="nw", text=player)
         y += 20
         for card in self.player_cards[player]:
@@ -91,9 +82,9 @@ class PokerGame:
 
 
 def main():
-        root = tk.Tk()
-        game = PokerGame(root)
-        root.mainloop()
+    root = tk.Tk()
+    game = PokerGame(root)
+    root.mainloop()
 
 
 if __name__ == "__main__":
